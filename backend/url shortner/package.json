@@ -6,5 +6,18 @@
     "mongoose": "^9.10.3",
     "nodemon": "^3.1.14",
     "path": "^0.12.7"
-  }
+  },
+  "name": "url-shortner",
+  "version": "1.0.0",
+  "description": "A small URL shortener built with **Express.js**, **MongoDB** (via Mongoose) and a plain HTML/CSS/JS frontend.",
+  "main": "server.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

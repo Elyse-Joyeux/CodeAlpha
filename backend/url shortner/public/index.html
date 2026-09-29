@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shorten a link</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <h1>Make long links short.</h1>
+      <p class="lede">
+        Paste a link below and get a short one that opens the original page.
+      </p>
+
+      <form id="shorten-form" novalidate>
+        <label for="url-input" class="sr-only">Link to shorten</label>
+        <input
+          type="text"
+          id="url-input"
+          name="url"
+          inputmode="url"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="https://example.com/a/very/long/page?with=parameters"
+          required
+        />
+        <button id="submit-btn">Shorten link</button>
+      </form>
+
+      <p id="error" class="error" role="alert" hidden></p>
+      <section id="result" class="result" aria-live="polite" hidden>
+        <p class="result-label">Your short link</p>
+        <a
+          href="#"
+          class="short-link"
+          id="short-link"
+          target="_blank"
+          rel="noopener"
+        ></a>
+        <div class="result-row">
+          <button id="copy-btn" class="secondary" type="button">
+            Copy link
+          </button>
+          <p id="savings" class="savings"></p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
