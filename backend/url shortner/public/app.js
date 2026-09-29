@@ -1,4 +1,4 @@
-const form = document.getElementById("shorten-fomr");
+const form = document.getElementById("shorten-form");
 const input = document.getElementById("url-input");
 const submitBtn = document.getElementById("submit-btn");
 const errorEl = document.getElementById("error");
@@ -35,7 +35,7 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   clearMessages();
 
-  const url = input.ariaValueMax.trim();
+  const url = input.value.trim();
   if (!url) {
     showError("Enter a link to shorten");
     input.focus();
