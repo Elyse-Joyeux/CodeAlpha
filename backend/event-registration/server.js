@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const app = require("./app");
-const { port, mongoUrl } = require("./config");
+const { port, mongoUri } = require("./config");
 
 mongoose
-  .connect(mongoUrl)
+  .connect(mongoUri)
   .then(() => {
     console.log("MongoDB connected successfully.");
     app.listen(port, () =>
@@ -11,6 +11,6 @@ mongoose
     );
   })
   .catch((err) => {
-    console.error("Could not connect to DB");
+    console.error("Could not connect to DB:", err.message);
     process.exit(1);
   });

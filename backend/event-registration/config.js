@@ -11,6 +11,6 @@ module.exports = {
     port: process.env.PORT || 3000,
     mongoUri:
       process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/event-registration',
-    jwtSecret: process.env.JWT_SECRET || 'dev-only-secret-change-me',
+    jwtSecret: process.env.JWT_SECRET || '986abcw09ahdkah978092nqalndad9y9bjkv',
     jwtExpiresIn: '7d',
   };
