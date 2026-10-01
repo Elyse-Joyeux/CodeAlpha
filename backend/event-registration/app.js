@@ -1,8 +1,8 @@
 const path = require('path')
 const express = require('express')
 const authRoutes = require('./routes/auth')
-const eventRoutes = require('./routes/events')
-const registrationRoutes = require('./routes/registrations')
+const eventRoutes = require('./routes/event')
+const registrationRoutes = require('./routes/registration')
 const errorHandler = require('./middleware/errorHandler')
 
 

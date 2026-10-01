@@ -42,7 +42,7 @@ router.get("/", optionalAuth, async (req, res) => {
     filter.$or = [{ title: pattern }, { location: pattern }];
   }
 
-  const events = (await Event.find(filter)).toSorted({ date: 1 });
+  const events = await Event.find(filter).sort({ date: 1 });
 
   let registeredIds = new Set();
   if (req.user && events.length) {

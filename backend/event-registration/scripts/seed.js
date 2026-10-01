@@ -1,4 +1,4 @@
-// creates teh first organizer/admin account and a few sample events
+// Creates the first organizer/admin account and sample events.
 // usage: npm run seed
 
 const mongoose = require('mongoose')
@@ -26,41 +26,57 @@ async function main(){
         console.log(`Organizer account already exists: ${email}`);
     }
 
-    if((await Event.countDocuments()) === 0){
-        const at = (days, hour) => {
-            const d = new Date(Date.now() + days * DAY);
-            d.setHours(hour, 0, 0, 0, 0);
-            return d;
-        };
+    const at = (days, hour) => {
+        const d = new Date(Date.now() + days * DAY);
+        d.setHours(hour, 0, 0, 0);
+        return d;
+    };
 
-        await Event.insertMany([
-            {
-                title: 'Intro to Embedded Systems Workshop',
-                description: 'Hands-on session: wire up a microcontroller and blink your first LED',
-                location: 'Lab 2',
-                date: at(7, 14),
-                capacity: 30,
-                createdBy: admin._id,
-            },
-            {
-                title: 'Weeked hackathon kickoff',
-                description: 'Form teams, pick a challenge and start building.',
-                location: 'Innovation room',
-                date: at(21, 9),
-                capacity: 3,
-                createdBy: admin._id,
-            }, 
-            {
-                title: 'Web security talk',
-                description: 'Common web vurnerabilities and how to defend against them.',
-                location: 'Main hall',
-                date: at(14,10),
-                capacity: 120,
-                createdBy: admin._id,
-            }
-        ]);
+    const samples = [
+        {
+            title: 'Intro to Embedded Systems Workshop',
+            description: 'Hands-on session: wire up a microcontroller and blink your first LED.',
+            location: 'Lab 2', date: at(7, 14), capacity: 30,
+        },
+        {
+            title: 'Weekend Hackathon Kickoff',
+            description: 'Form teams, pick a challenge and start building.',
+            location: 'Innovation Room', date: at(21, 9), capacity: 40,
+        },
+        {
+            title: 'Web Security Talk',
+            description: 'Learn common web vulnerabilities and how to defend against them.',
+            location: 'Main Hall', date: at(14, 10), capacity: 120,
+        },
+        {
+            title: 'Python for Beginners',
+            description: 'A friendly, hands-on introduction to programming with Python.',
+            location: 'Computer Lab', date: at(10, 11), capacity: 35,
+        },
+        {
+            title: 'Product Design Meetup',
+            description: 'Share ideas and learn practical user experience design methods.',
+            location: 'Design Studio', date: at(18, 17), capacity: 50,
+        },
+        {
+            title: 'Career Networking Evening',
+            description: 'Meet local technology professionals and explore career paths.',
+            location: 'Community Centre', date: at(25, 18), capacity: 80,
+        },
+        {
+            title: 'First Aid Essentials',
+            description: 'Practice useful first aid skills with a certified instructor.',
+            location: 'Training Room A', date: at(30, 10), capacity: 24,
+        },
+    ].map((event) => ({ ...event, createdBy: admin._id }));
 
-        console.log('Created 3 sample events')
+    const existingTitles = new Set(await Event.distinct('title'));
+    const missingEvents = samples.filter((event) => !existingTitles.has(event.title));
+    if (missingEvents.length) {
+        await Event.insertMany(missingEvents);
+        console.log(`Created ${missingEvents.length} sample event(s).`);
+    } else {
+        console.log('Sample events already exist.');
     }
 
     await mongoose.disconnect();

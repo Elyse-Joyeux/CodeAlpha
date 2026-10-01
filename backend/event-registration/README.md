@@ -19,12 +19,12 @@ Requires Node.js 18+ and MongoDB (local or MongoDB Atlas).
 ```bash
 npm install
 cp .env.example .env     # set MONGODB_URI and JWT_SECRET
-npm run seed             # creates the organizer account + 3 sample events
+npm run seed             # creates the organizer account + 7 sample events
 npm start
 ```
 
 Open http://localhost:3000.
-Organizer login (from `.env`): `admin@example.com` / `admin12345`. Change these before deploying.
+Organizer login: use the `ADMIN_EMAIL` and `ADMIN_PASSWORD` values configured in `.env`. Choose a unique password before deploying.
 
 ## Data models
 

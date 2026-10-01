@@ -15,7 +15,8 @@ function h(tag, props = {}, ...kids) {
   const el = document.createElement(tag);
   for (const [key, value] of Object.entries(props)) {
     if (key === "class") el.className = value;
-    else if (key.startsWith("on")) el.addEventListener(key.slice(2), value);
+    else if (key.startsWith("on"))
+      el.addEventListener(key.slice(2).toLowerCase(), value);
     else if (value !== false && value != null)
       el.setAttribute(key, value === true ? "" : value);
   }
@@ -72,7 +73,7 @@ function setSession({ token, user }) {
 
 function logout() {
   state.token = null;
-  state.order = null;
+  state.user = null;
   localStorage.removeItem("token");
   go("events");
 }
@@ -83,12 +84,70 @@ const go = (view) => {
 };
 
 function field(label, input) {
-  return h("label", {}, lable, input);
+  return h("label", {}, label, input);
+}
+
+function passwordField(label, input) {
+  const wrapper = h("span", { class: "password-control" });
+  const toggle = h(
+    "button",
+    {
+      class: "password-toggle",
+      type: "button",
+      "aria-label": "Show password",
+      "aria-pressed": "false",
+      onclick() {
+        const visible = input.type === "password";
+        input.type = visible ? "text" : "password";
+        toggle.setAttribute("aria-label", visible ? "Hide password" : "Show password");
+        toggle.setAttribute("aria-pressed", String(visible));
+        toggle.replaceChildren(eyeIcon(visible));
+      },
+    },
+    eyeIcon(false),
+  );
+  wrapper.append(input, toggle);
+  return field(label, wrapper);
+}
+
+function eyeIcon(visible) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", visible
+    ? "M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.8 10.8 0 0112 5c5 0 9 4 10 7-.4 1.4-1.4 2.8-2.8 3.9M6.2 6.2C3.8 7.5 2.4 9.5 2 12c1 3 5 7 10 7 1 0 2-.2 2.9-.5"
+    : "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7zm10-3a3 3 0 100 6 3 3 0 000-6z");
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "currentColor");
+  path.setAttribute("stroke-width", "2");
+  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linejoin", "round");
+  svg.append(path);
+  return svg;
 }
 
 // views
 async function eventsView(root) {
-  root.append(h("h1", {}, "upcoming events"));
+  root.append(
+    h(
+      "section",
+      { class: "hero", "aria-labelledby": "welcome-title" },
+      h("p", { class: "eyebrow" }, "EVENTBOARD · FIND YOUR PEOPLE"),
+      h("h1", { id: "welcome-title" }, "Make room for something new."),
+      h(
+        "p",
+        { class: "hero-copy" },
+        "Discover workshops, talks, and meetups. Register for events and keep your bookings together in My events.",
+      ),
+      state.user
+        ? h("button", { onclick: () => go("mine") }, "View my events")
+        : h("button", { onclick: () => go("signup") }, "Create a free account"),
+    ),
+  );
+
+  root.append(h("h1", {}, "Upcoming events"));
   const search = h("input", {
     type: "search",
     placeholder: "Search by title or location",
@@ -119,23 +178,33 @@ async function eventsView(root) {
 }
 
 function spotsText(ev) {
-  if (ev.registered) return "YOu are registered";
+  if (ev.registered) return "You are registered";
   if (ev.spotsLeft <= 0) return "Full";
   return `${ev.spotsLeft} of ${ev.capacity} spots left.`;
 }
 
 function eventCard(ev) {
   const date = new Date(ev.date);
-  const panel = h("div", { class: "panel", hidden: true }, eventPanel(ev));
+  const panel = h("div", { class: "panel", hidden: true });
   const toggle = h(
     "button",
     {
       class: "secondary",
       "aria-expanded": "false",
-      onClick() {
+      async onClick() {
         panel.hidden = !panel.hidden;
         toggle.setAttribute("aria-expanded", String(!panel.hidden));
         toggle.textContent = panel.hidden ? "Details" : "Hide details";
+        if (panel.hidden || panel.dataset.loaded === "true") return;
+
+        panel.replaceChildren(h("p", { class: "meta" }, "Loading details…"));
+        try {
+          const { event } = await api(`/events/${ev.id}`);
+          panel.replaceChildren(...eventPanel(event));
+          panel.dataset.loaded = "true";
+        } catch (err) {
+          panel.replaceChildren(h("p", { class: "error" }, err.message));
+        }
       },
     },
     "Details",
@@ -162,7 +231,7 @@ function eventCard(ev) {
       h("p", { class: "meta" }, ev.location),
       h(
         "p",
-        { class: "spots" + (!ev.registered && ev.spotsLeft <= 5 ? "low" : "") },
+        { class: "spots" + (!ev.registered && ev.spotsLeft <= 5 ? " low" : "") },
         spotsText(ev),
       ),
       toggle,
@@ -172,7 +241,17 @@ function eventCard(ev) {
 }
 
 function eventPanel(ev) {
-  const parts = [];
+  const parts = [
+    h("p", { class: "meta" }, fmtFull(ev.date)),
+    h("p", { class: "meta" }, ev.location),
+    h(
+      "p",
+      { class: "spots" },
+      ev.spotsLeft > 0
+        ? `${ev.spotsLeft} of ${ev.capacity} places available.`
+        : "This event is full.",
+    ),
+  ];
   if (ev.description) parts.push(h("p", { class: "desc" }, ev.description));
 
   if (ev.registered) {
@@ -184,14 +263,14 @@ function eventPanel(ev) {
         "View my registrations",
       ),
     );
-  } else if (ev.spotsLeft <= 0) {
-    parts.push(h("p", {}, "This event is full."));
-  } else if (!state.user) {
-    parts.push(
-      h("button", { onclick: () => go("auth") }, "Log in to register"),
-    );
-  } else {
-    parts.push(registrationForm(ev));
+  } else if (ev.spotsLeft > 0) {
+    if (!state.user) {
+      parts.push(
+        h("button", { onclick: () => go("auth") }, "Log in to register"),
+      );
+    } else {
+      parts.push(registrationForm(ev));
+    }
   }
   return parts;
 }
@@ -211,6 +290,7 @@ function registrationForm(ev) {
     "form",
     {
       async onSubmit(e) {
+        e.preventDefault();
         submit.disabled = true;
         try {
           await api(`/events/${ev.id}/register`, {
@@ -237,8 +317,8 @@ function registrationForm(ev) {
   );
 }
 
-function authView(root) {
-  let mode = "login";
+function authView(root, initialMode = "login") {
+  let mode = initialMode;
   const box = h("div", { class: "auth" });
   root.append(box);
 
@@ -269,6 +349,7 @@ function authView(root) {
       "form",
       {
         async onSubmit(e) {
+          e.preventDefault();
           submit.disabled = true;
           try {
             const data = await api(isLogin ? "/auth/login" : "/auth/register", {
@@ -292,10 +373,17 @@ function authView(root) {
       },
       name ? field("Name", name) : null,
       field("Email", email),
-      field(
+      passwordField(
         isLogin ? "Password" : "Password (at least 8 characters)",
         password,
       ),
+      isLogin
+        ? h("button", {
+            class: "link forgot-password",
+            type: "button",
+            onclick: () => notice("Password reset isn't set up yet. Please contact the event organizer for help."),
+          }, "Forgot password?")
+        : null,
       submit,
     );
 
@@ -326,7 +414,10 @@ function authView(root) {
 }
 
 async function mineView(root) {
-  root.append(h("h1", {}, "My registrations"));
+  root.append(
+    h("h1", {}, "My events"),
+    h("p", { class: "meta page-intro" }, "Your registered and cancelled events in one place."),
+  );
   const { registrations } = await api("/registrations/mine");
   if (!registrations.length) {
     root.append(
@@ -530,19 +621,18 @@ function adminRow(ev) {
 // navigate and start up
 
 function renderNav() {
-  const item = (view, label) =>
-    h(
-      "button",
-      {
-        onclick: () => go(view),
-        "aria-current": state.view === view ? "page" : null,
-      },
-      label,
-    );
+  const item = (view, label, className) => {
+    const props = {
+      onclick: () => go(view),
+      "aria-current": state.view === view ? "page" : null,
+    };
+    if (className) props.class = className;
+    return h("button", props, label);
+  };
 
-  navEl.replaceChildren(
+  const items = [
     item("events", "Events"),
-    state.user ? item("mine", "My registrations") : null,
+    state.user ? item("mine", "My events") : null,
     state.user && state.user.role === "admin"
       ? item("admin", "Organizer")
       : null,
@@ -551,13 +641,20 @@ function renderNav() {
           h("span", { class: "who" }, state.user.name),
           h("button", { onclick: logout }, "Log out"),
         ]
-      : item("auth", "Log in"),
+      : [
+          item("auth", "Log in"),
+          item("signup", "Create account", "nav-cta"),
+        ],
+  ];
+  navEl.replaceChildren(
+    ...items.flat(Infinity).filter((child) => child != null && child !== false),
   );
 }
 
 const views = {
   events: eventsView,
-  auth: authView,
+  auth: (root) => authView(root, "login"),
+  signup: (root) => authView(root, "signup"),
   mine: mineView,
   admin: adminView,
 };

@@ -14,10 +14,10 @@ const signToken = (user) => jwt.sign({ sub: user.id, role: user.role }, jwtSecre
 
 // create an account (always a regular user; organizers created with npm run seed)
 router.post('/register', async(req, res) =>{
-    const body = req.body;
+    const body = req.body || {};
     const password = typeof body.password === 'string' ? body.password : ''
 
-    if(password.lenght < 8){
+    if(password.length < 8){
         return res.status(400).json({error: "Password must be at least 8 characters."})
     }
 
@@ -32,7 +32,7 @@ router.post('/register', async(req, res) =>{
 
     } catch(err){
         if(err.code === 11000){
-            return res.status(409).json({error: "An accoun with this email already exists."})
+            return res.status(409).json({error: "An account with this email already exists."})
         }
         throw err;
     }
