@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hearth, restaurant management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav aria-label="Main">
+        <div class="brand">Hearth</div>
+        <button data-act="nav" data-id="order">order</button>
+        <button data-act="nav" data-id="kitchen">Kitchen</button>
+        <button data-act="nav" data-id="tables">Tables</button>
+        <button data-act="nav" data-id="admin">Admin</button>
+    </nav>
+    <main id="view" aria-live="polite"></main>
+    <div id="toast" role="status"></div>
+    <script type="module" src="/js/main.js"></script>
+</body>
+</html>
