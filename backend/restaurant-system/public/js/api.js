@@ -5,7 +5,7 @@ export async function api(path, o = {}){
     const admin = path.startsWith('/admin')
     const r = await fetch('/api' + path, {
         method: o.method || 'GET',
-        headers: { 'Contenty-Type': 'application/json', ...(admin && S.token ? { Authorization: 'Bearer ' + S.token } : {})},
+        headers: { 'Content-Type': 'application/json', ...(admin && S.token ? { Authorization: 'Bearer ' + S.token } : {})},
         body: o.body ? JSON.stringify(o.body) : undefined
     })
 
@@ -13,8 +13,9 @@ export async function api(path, o = {}){
     if (!r.ok) {
         if(r.status === 401 && admin) {
             S.token = ''; sessionStorage.removeItem('hearth')
-            throw new Error(d.error || 'Request failed');
+            throw new Error(d.error || 'Your session expired. Please sign in again.');
         }
+        throw new Error(d?.error || d?.message || `Request failed (${r.status})`);
     }
     return d;
 }
