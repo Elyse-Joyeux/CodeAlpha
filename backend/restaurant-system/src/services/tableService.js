@@ -1,7 +1,7 @@
 const { Table, Reservation } = require("../models");
 const { stayMs } = require("../config");
 const httpError = require("../utils/httpError");
-const { dayRange, today, parseSlot } = require("../utils/dates");
+const { dayRange, today, parseSlot } = require("../utils/data");
 
 // rree for a slot = fits the party, no booking within 90 minutes of the slot, and not in use
 // right now when the slot falls inside the current sitting.

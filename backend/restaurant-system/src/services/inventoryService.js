@@ -4,20 +4,26 @@ const httpError = require("../utils/httpError");
 exports.list = () => Inventory.find().sort({ name: 1 });
 
 exports.create = ({ name, unit, stock, reorder_level }) => {
-  if (!name || !unit || !(Number(stock) >= 0))
+  if (!name || !unit || stock === undefined || !Number.isFinite(Number(stock)) || Number(stock) < 0)
     throw httpError(400, "Name, unit and a starting stock are required.");
+  if (reorder_level !== undefined && (!Number.isFinite(Number(reorder_level)) || Number(reorder_level) < 0))
+    throw httpError(400, "Reorder level must be a non-negative number.");
   return Inventory.create({
     name,
     unit,
     stock: Number(stock),
-    reorder_level: Number(reorder_level) || 5,
+    reorder_level: reorder_level === undefined ? 5 : Number(reorder_level),
   });
 };
 
 // restock { add } and/or change { reorder_level }
 exports.update = async (id, { add, reorder_level }) => {
-  add = Number(add || 0);
-  if (!(add > 0) && reorder_level === undefined)
+  if (add !== undefined && (!Number.isFinite(Number(add)) || Number(add) <= 0))
+    throw httpError(400, "Amount to add must be a positive number");
+  if (reorder_level !== undefined && (!Number.isFinite(Number(reorder_level)) || Number(reorder_level) < 0))
+    throw httpError(400, "Reorder level must be a non-negative number.");
+  add = add === undefined ? 0 : Number(add);
+  if (add === 0 && reorder_level === undefined)
     throw httpError(400, "Enter an amount to add");
   const upd = {};
   if (add > 0) upd.$inc = { stock: add };

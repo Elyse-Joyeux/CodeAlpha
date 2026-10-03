@@ -1,7 +1,7 @@
 const { Order, Table, MenuItem, Inventory, Counter } = require("../models");
 const { openStatuses } = require("../config");
 const httpError = require("../utils/httpError");
-const { dayRange, today } = require("../utils/dates");
+const { dayRange, today } = require("../utils/data");
 const valid = require("mongoose").isValidObjectId;
 
 // MongoDB transactions need a replica set, so stock is taken with atomic conditional updates
