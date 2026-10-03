@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hearth, restaurant management</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap">
+    <meta name="theme-color" content="#f4f1e9">
+    <meta name="description" content="Hearth restaurant operations: orders, kitchen, tables, and daily reporting.">
+    <title>Hearth — Restaurant desk</title>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-    <nav aria-label="Main">
-        <div class="brand">Hearth</div>
-        <button data-act="nav" data-id="order">order</button>
-        <button data-act="nav" data-id="kitchen">Kitchen</button>
-        <button data-act="nav" data-id="tables">Tables</button>
-        <button data-act="nav" data-id="admin">Admin</button>
-    </nav>
-    <main id="view" aria-live="polite"></main>
+    <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Hearth home"><span class="brand-mark">H</span><span>hearth<small>RESTAURANT DESK</small></span></a>
+        <div class="nav-label">WORKSPACE</div>
+        <nav aria-label="Main navigation">
+            <button data-act="nav" data-id="order"><span class="nav-index">01</span> New order</button>
+            <button data-act="nav" data-id="kitchen"><span class="nav-index">02</span> Kitchen</button>
+            <button data-act="nav" data-id="tables"><span class="nav-index">03</span> Tables & bookings</button>
+            <button data-act="nav" data-id="admin"><span class="nav-index">04</span> Management</button>
+        </nav>
+        <div class="sidebar-foot"><span class="live-dot"></span> SERVICE DESK <span class="sidebar-rule"></span><span>EST. 2024</span></div>
+    </aside>
+    <main id="view" aria-live="polite" aria-busy="false"></main>
     <div id="toast" role="status"></div>
     <script type="module" src="/js/main.js"></script>
 </body>
