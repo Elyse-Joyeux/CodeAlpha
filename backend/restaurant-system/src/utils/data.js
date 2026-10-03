@@ -13,6 +13,8 @@ function dayRange(s) {
     throw httpError(400, "Use a date like 2026-10-01");
   const start = new Date(s + "T00:00:00"),
     end = new Date(start);
+  if (isNaN(start) || start.toLocaleDateString("sv-SE") !== s)
+    throw httpError(400, "Use a valid calendar date like 2026-10-01");
   end.setDate(end.getDate() + 1);
   return [start, end];
 }
@@ -22,10 +24,10 @@ function parseSlot(s) {
   s = String(s || "")
     .replace("T", " ")
     .slice(0, 16);
-  const d = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)
+  const d = /^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/.test(s)
     ? new Date(s.replace(" ", "T"))
     : null;
-  return d && !isNaN(d) ? d : null;
+  return d && !isNaN(d) && d.toLocaleDateString("sv-SE") === s.slice(0, 10) ? d : null;
 }
 
 module.exports = { ld, today, local, dayRange, parseSlot };
