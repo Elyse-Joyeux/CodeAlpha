@@ -46,12 +46,12 @@ module.exports = model(
 
       description: {
         type: String,
-        default: true,
+        default: "",
       },
 
       available: {
         type: Boolean,
-        default: "",
+        default: true,
       },
 
       recipe: [recipeLine],
