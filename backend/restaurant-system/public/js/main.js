@@ -1,15 +1,18 @@
 import { S } from './state.js'
 import {$, toast } from './ui.js'
-import * as order from './views/kitchen.js'
-import * as kitchen from './views/tables.js'
+import * as order from './views/order.js'
+import * as kitchen from './views/kitchen.js'
+import * as tables from './views/tables.js'
 import * as admin from './views/admin.js'
 
 const VIEWS = { order, kitchen, tables, admin };
-const acts = { nav: v => go(v), ...order.actions, ...kitchen.actions, ...tables.actions, ...admin.actions}
+const acts = { nav: v => go(v), retry: () => go(S.view), ...order.actions, ...kitchen.actions, ...tables.actions, ...admin.actions}
 
 async function go(v) {
+    if (!VIEWS[v]) return;
     clearInterval(S.poll);
     S.view = v;
+    $('#view').setAttribute('aria-busy', 'true');
     document.querySelectorAll('nav button[data-id]').forEach((b) => {
         b.classList.toggle('on', b.dataset.id === v)
         b.toggleAttribute('aria-current', b.dataset.id === v)
@@ -19,8 +22,14 @@ async function go(v) {
         await VIEWS[v].render()
     
     } catch (e) {
-        if (v === 'admin' && !S.token) return admin.render();
-        toast(e.message, 1)
+        if (v === 'admin' && !S.token) {
+            await admin.render();
+        } else {
+            const message = String(e.message || 'Please check the connection and try again.').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            $('#view').innerHTML = `<section class="error-state"><p class="eyebrow">Connection interrupted</p><h1>This screen could not load</h1><p>${message}</p><button class="btn" data-act="retry">Try again</button></section>`;
+        }
+    } finally {
+        $('#view').setAttribute('aria-busy', 'false');
     }
 }
 
@@ -38,9 +47,12 @@ document.addEventListener('click', async(e) => {
     }
 })
 
-document.addEventListener('submit', (e) => {
+document.addEventListener('submit', async (e) => {
     e.preventDefault()
-    $("#lf [data-act]")?.click();
+    if (e.target.id === 'lf') {
+        try { await acts.login() }
+        catch (x) { toast(x.message, 1) }
+    }
 })
 
 document.addEventListener('input', (e) => {
