@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 
-const Counter = model("Counter", newSchema({ _id: String, n: Number }));
+const Counter = model("Counter", new Schema({ _id: String, n: { type: Number, default: 0 } }));
 
 // atomic order numbers (1, 2, 3...)
 Counter.nextOrderNumber = async () =>

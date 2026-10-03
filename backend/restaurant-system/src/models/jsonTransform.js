@@ -1,4 +1,4 @@
-const { local } = require("../utils/dates");
+const { local } = require("../utils/data");
 
 // mongoose option: expose `id`, hide internals, show dates as local "YYYY-MM-DD HH:MM[:SS]".
 module.exports = (dates = {}) => ({

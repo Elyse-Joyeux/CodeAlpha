@@ -11,7 +11,7 @@ module.exports = model('Reservation', new Schema({
     },
     table_number: Number,
     name: {
-        typee: String,
+        type: String,
         required: true,
         trim: true,
     },

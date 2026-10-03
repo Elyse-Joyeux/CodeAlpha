@@ -46,7 +46,7 @@ module.exports = model(
 
       description: {
         type: String,
-        default: "",
+        default: true,
       },
 
       available: {

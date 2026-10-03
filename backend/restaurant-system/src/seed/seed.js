@@ -99,9 +99,9 @@ async function seed() {
     })),
   );
 
-  const tables = await Table.insertMany([2, 2, 2, 4, 4, 4, 4, 6, 6, 8]).map(
+  const tables = await Table.insertMany([2, 2, 2, 4, 4, 4, 4, 6, 6, 8].map(
     (seats, i) => ({ number: i + 1, seats }),
-  );
+  ));
 
 
   

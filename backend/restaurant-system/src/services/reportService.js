@@ -1,5 +1,5 @@
 const { Order } = require("../models");
-const { ld, today, dayRange } = require("../utils/dates");
+const { ld, today, dayRange } = require("../utils/data");
 
 // daily sales report: totals, best sellers and a 7-day trend ending on `date`.
 // A restaurant day is a few hundred orders at most, so totals are computed in JS (portable, readable).

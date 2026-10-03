@@ -29,6 +29,7 @@ module.exports = model(
         default: 5,
         min: 0,
       },
-    }.json(),
+    },
+    json(),
   ),
 );
