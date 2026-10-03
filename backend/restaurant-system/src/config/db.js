@@ -14,7 +14,7 @@ function tlsReachable(host, port, timeoutMs = 4000) {
                 resolve(true)
             },
         )
-        socket.on('error', () => resolve(false))
+        socket.on('error', () => resolve(false));
         socket.on('timeout', () => {
             socket.destroy()
             resolve(false)
