@@ -19,10 +19,16 @@ async function seed() {
     ["Milk", "l", 20, 6],
     ["Passion fruit", "kg", 8, 3],
     ["Soda", "bottle", 60, 12],
-  ])
-    inv[name] = (
-      await Inventory.create({ name, unit, stock, reorder_level })
-    )._id;
+  ]) {
+    // A previous seed may have stopped after creating inventory but before
+    // creating the menu. Reuse those rows instead of failing on the unique name.
+    const item = await Inventory.findOneAndUpdate(
+      { name },
+      { $setOnInsert: { unit, stock, reorder_level } },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+    inv[name] = item._id;
+  }
 
   const menu = await MenuItem.insertMany(
     [
