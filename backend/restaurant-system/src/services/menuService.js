@@ -58,7 +58,7 @@ exports.update = async (id, body) => {
   if (body.price !== undefined) upd.price = Math.round(body.price);
   if (body.recipe !== undefined) upd.recipe = await toRecipe(body.recipe);
   const doc = await MenuItem.findByIdAndUpdate(id, upd, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
   if (!doc) throw httpError(404, "Menu item not found");

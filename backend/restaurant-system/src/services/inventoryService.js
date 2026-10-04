@@ -30,7 +30,7 @@ exports.update = async (id, { add, reorder_level }) => {
   if (reorder_level !== undefined)
     upd.$set = { reorder_level: Number(reorder_level) };
   const doc = await Inventory.findByIdAndUpdate(id, upd, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
   if (!doc) throw httpError(404, "Ingredient not found");

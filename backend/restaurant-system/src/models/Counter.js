@@ -8,7 +8,7 @@ Counter.nextOrderNumber = async () =>
     await Counter.findByIdAndUpdate(
       "order",
       { $inc: { n: 1 } },
-      { new: true, upsert: true },
+      { returnDocument: "after", upsert: true },
     )
   ).n;
 

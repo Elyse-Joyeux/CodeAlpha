@@ -107,7 +107,7 @@ exports.changeStatus = async (id, next) => {
   const upd = await Order.findOneAndUpdate(
     { _id: o._id, status: o.status },
     { status: next },
-    { new: true },
+    { returnDocument: "after" },
   ); // guards double clicks
 
   if (!upd) throw httpError(409, "This order was just changed by someone else");
