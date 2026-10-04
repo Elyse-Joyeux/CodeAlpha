@@ -2,7 +2,7 @@ import { S } from './state.js'
 
 // thin fetch wrapper: JSON
 export async function api(path, o = {}){
-    const admin = path.startsWith('/admin')
+    const admin = path.startsWith('/admin') || (o.method === 'PATCH' && path.startsWith('/orders/'))
     const r = await fetch('/api' + path, {
         method: o.method || 'GET',
         headers: { 'Content-Type': 'application/json', ...(admin && S.token ? { Authorization: 'Bearer ' + S.token } : {})},

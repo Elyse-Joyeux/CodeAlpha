@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const c = require('../controllers/reservationController')
+const c = require('../controllers/reservationController');
 const A = require('../utils/asyncHandler')
 
 

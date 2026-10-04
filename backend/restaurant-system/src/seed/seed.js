@@ -25,7 +25,7 @@ async function seed() {
     const item = await Inventory.findOneAndUpdate(
       { name },
       { $setOnInsert: { unit, stock, reorder_level } },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
     );
     inv[name] = item._id;
   }

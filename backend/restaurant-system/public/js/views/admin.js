@@ -6,6 +6,7 @@ let inv = []; // ingredients, used by the recipe builder
 
 const TABS = [
   ["reports", "Reports"],
+  ["kitchen", "Kitchen"],
   ["inventory", "Inventory"],
   ["menu", "Menu"],
 ];
@@ -85,6 +86,18 @@ async function menu() {
     <button class="btn" data-act="createMenu">Add to menu</button></div>`;
 }
 
+async function kitchen() {
+  const orders = await api("/orders?status=open");
+  const stages = [
+    ["pending", "Waiting", "Start cooking", "preparing"],
+    ["preparing", "Preparing", "Ready to serve", "served"],
+  ];
+  return `<div class="board">${stages.map(([status, title, label, next]) => {
+    const rows = orders.filter((o) => o.status === status).reverse();
+    return `<section class="col"><h2>${title}<span class="count">${rows.length}</span></h2>${rows.map((o) => `<article class="tk"><header><b class="serif big">Table ${o.table_number}</b><span class="muted">Order ${o.number}</span></header><ul>${o.items.map((i) => `<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul>${o.note ? `<p class="note">${esc(o.note)}</p>` : ""}<div class="row"><button class="btn sm" data-act="kitchenStep" data-id="${o.id}" data-next="${next}">${label}</button><button class="link danger" data-act="kitchenStep" data-id="${o.id}" data-next="cancelled">Cancel</button></div></article>`).join("") || '<p class="empty">No orders here.</p>'}</section>`;
+  }).join("")}<section class="col"><h2>Served</h2>${orders.filter((o) => o.status === "served").map((o) => `<article class="tk"><header><b class="serif big">Table ${o.table_number}</b><span class="muted">Order ${o.number}</span></header><ul>${o.items.map((i) => `<li>${i.qty} × ${esc(i.name)}</li>`).join("")}</ul><span class="muted">Awaiting customer payment · ${money(o.total)}</span></article>`).join("") || '<p class="empty">No served orders.</p>'}</section></div>`;
+}
+
 // pages
 export async function render() {
   if (!S.token) {
@@ -93,7 +106,7 @@ export async function render() {
       <label>Password<input id="pw" type="password" autocomplete="current-password"></label><button class="btn" data-act="login">Sign in</button></form>`;
     return;
   }
-  const body = await { reports, inventory, menu }[S.adminTab]();
+  const body = await { reports, kitchen, inventory, menu }[S.adminTab]();
   $("#view").innerHTML =
     `<div class="head"><h1>Admin</h1><button class="link" data-act="logout">Sign out</button></div>
     <div class="tabs">${TABS.map(([id, t]) => `<button data-act="tab" data-id="${id}" class="${S.adminTab === id ? "on" : ""}">${t}</button>`).join("")}</div>${body}`;
@@ -111,6 +124,12 @@ export const actions = {
     });
     S.token = token;
     sessionStorage.setItem("hearth", token);
+    render();
+  },
+  async kitchenStep(id, b) {
+    if (b.dataset.next === "cancelled" && !confirm("Cancel this order? The ingredients go back into stock.")) return;
+    await api(`/orders/${id}/status`, { method: "PATCH", body: { status: b.dataset.next } });
+    toast(b.dataset.next === "cancelled" ? "Order cancelled" : "Order updated");
     render();
   },
   logout() {
