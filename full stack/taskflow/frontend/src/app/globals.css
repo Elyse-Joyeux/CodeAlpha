@@ -1,26 +1,221 @@
-@import "tailwindcss";
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f4f5f9;
+  --card: #fff;
+  --line: #e2e5ee;
+  --fg: #1c2033;
+  --mut: #6b7390;
+  --acc: #6c5ce7
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font: 15px system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg)
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  padding: 8px 10px
+}
+
+button {
+  cursor: pointer
+}
+
+.p {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff
+}
+
+.d {
+  color: #d14343
+}
+
+.center {
+  max-width: 360px;
+  margin: 12vh auto;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  display: grid;
+  gap: 10px
+}
+
+.mut {
+  color: var(--mut)
+}
+
+.err {
+  color: #d14343
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center
+}
+
+.row>input {
+  flex: 1;
+  min-width: 0
+}
+
+.hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: relative
+}
+
+.hdr a {
+  font-weight: 700;
+  color: var(--acc);
+  text-decoration: none;
+  font-size: 18px
+}
+
+.sp {
+  flex: 1
+}
+
+.badge {
+  background: #e5484d;
+  color: #fff;
+  border-radius: 99px;
+  padding: 0 6px;
+  font-size: 12px;
+  margin-left: 4px
+}
+
+.dd {
+  position: absolute;
+  right: 20px;
+  top: 52px;
+  width: 320px;
+  max-height: 360px;
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px #0002;
+  z-index: 5
+}
+
+.dd div {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 14px
+}
+
+.dd .un {
+  background: #f0edff
+}
+
+.wrap {
+  padding: 20px;
+  max-width: 1100px;
+  margin: 0 auto
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px
+}
+
+.pc {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  gap: 14px;
+  align-items: start;
+  overflow-x: auto
+}
+
+.col {
+  background: #e9ebf3;
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 200px;
+  display: grid;
+  gap: 8px
+}
+
+.col h3 {
+  margin: 2px 4px;
+  font-size: 14px
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: grab
+}
+
+.tag {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  background: #f0edff;
+  color: var(--acc);
+  padding: 2px 8px;
+  border-radius: 99px
+}
+
+.ov {
+  position: fixed;
+  inset: 0;
+  background: #0006;
+  display: grid;
+  place-items: center;
+  z-index: 10
+}
+
+.modal {
+  background: var(--card);
+  border-radius: 14px;
+  width: min(560px, 94vw);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 20px;
+  display: grid;
+  gap: 10px
+}
+
+.cm {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px
+}
+
+.cm b {
+  color: var(--acc)
 }
