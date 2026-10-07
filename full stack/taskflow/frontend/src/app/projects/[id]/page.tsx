@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { DragEvent } from "react";
 import { useParams } from "next/navigation";
 import Header from "@/components/Header";
 import TaskModal from "@/components/TaskModal";
@@ -12,6 +13,12 @@ const COLS: { key: Status; label: string }[] = [
   { key: "in_progress", label: "In progress" },
   { key: "done", label: "Done" },
 ];
+
+type ProjectResponse = {
+  project: { id: string; name: string };
+  members: User[];
+  tasks: Task[];
+};
 
 export default function Board() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +40,7 @@ export default function Board() {
     setTasks((l) => l.filter((x) => x.id !== tid));
 
   useEffect(() => {
-    api(`/api/projects/${id}`)
+    api<ProjectResponse>(`/api/projects/${id}`)
       .then((d) => {
         setProject(d.project);
         setMembers(d.members);
@@ -46,7 +53,7 @@ export default function Board() {
     const mem = (u: User) =>
       setMembers((l) => (l.some((x) => x.id === u.id) ? l : [...l, u]));
     watch();
-    s.on("conanect", watch);
+    s.on("connect", watch);
     s.on("task:created", upsert);
     s.on("task:updated", upsert);
     s.on("task:deleted", del);
@@ -76,7 +83,7 @@ export default function Board() {
       setErr((e as Error).message);
     }
   }
-  async function drop(status: Status, e: React.DragEvent) {
+  async function drop(status: Status, e: DragEvent<HTMLDivElement>) {
     const tid = e.dataTransfer.getData("text/plain"),
       t = tasks.find((x) => x.id === tid);
     if (!t || t.status === status) return;

@@ -2,13 +2,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api, getName } from "@/lib/api";
+import { api, clearSession, getName } from "@/lib/api";
 import { closeSocket, getSocket } from "@/lib/socket";
 import type { Notif } from "@/lib/types";
 
 export default function Header() {
   const router = useRouter();
-  const [list, setList] = useState<Notify[]>([]);
+  const [list, setList] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
@@ -18,7 +18,7 @@ export default function Header() {
       .then(setList)
       .catch(() => {});
     const s = getSocket();
-    const on = (n: Notify) => setList((l) => [n, ...l]);
+    const on = (n: Notif) => setList((l) => [n, ...l]);
     s.on("notification", on);
     return () => {
       s.off("notification", on);
@@ -48,10 +48,10 @@ export default function Header() {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-bell preview-icon"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="lucide lucide-bell preview-icon"
         >
           <path d="M10.268 21a2 2 0 0 0 3.464 0" />
           <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
@@ -61,7 +61,7 @@ export default function Header() {
       <span className="mut">{name}</span>
       <button
         onClick={() => {
-          localStorage.clear();
+          clearSession();
           closeSocket();
           router.push("/");
         }}

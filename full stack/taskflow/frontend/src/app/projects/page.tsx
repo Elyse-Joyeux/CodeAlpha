@@ -5,7 +5,7 @@ import Header from '@/components/Header'
 import { api } from '@/lib/api'
 
 
-type Project = { id: string; name: string; task_cout: number}
+type Project = { id: string; name: string; task_count: number }
 
 
 export default function Projects(){
@@ -23,10 +23,10 @@ export default function Projects(){
         try {
             const p = await api<Project>('/api/projects', {
                 method: 'POST',
-                body: JSON.stringify({ name }); 
+                body: JSON.stringify({ name }),
             })
 
-            router.push('/projects' +p.id )
+            router.push('/projects/' + p.id)
         } catch(e){
             setErr((e as Error).message)
         }

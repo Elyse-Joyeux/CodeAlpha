@@ -36,7 +36,7 @@ export default function TaskModal({
     };
   }, [task.id]);
 
-  const path = async (b: Partial<Task>) =>
+  const patch = async (b: Partial<Task>) =>
     onUpdate(
       await api<Task>(`/api/tasks/${task.id}`, {
         method: "PATCH",

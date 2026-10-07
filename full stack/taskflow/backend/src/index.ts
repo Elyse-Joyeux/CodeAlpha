@@ -1,16 +1,16 @@
 import "dotenv/config";
-import express, { Request, Response, NextFunction } from "express";
-import http, { ServerResponse } from "http";
+import express, { type Request, type Response, type NextFunction } from "express";
+import http from "http";
 import path from "path";
-import fs, { rmSync } from "fs";
+import fs from "fs";
 import cors from "cors";
+import type { CorsOptions } from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Pool } from "pg";
 import { Server } from "socket.io";
-import { REPLCommand } from "repl";
 
 interface JwtUser {
   sub: string;
@@ -20,9 +20,9 @@ const {
   DATABASE_URL,
   JWT_SECRET,
   PORT = "4000",
-  FRONTEND_URL = "http://localhost:300",
+  FRONTEND_URL = "http://localhost:3000",
 } = process.env;
-if (!DATABASE_URL || JWT_SECRET)
+if (!DATABASE_URL || !JWT_SECRET)
   throw new Error("Set DATABASE_URL and JWT_SECRET in .env");
 
 const pool = new Pool({
@@ -32,13 +32,43 @@ const pool = new Pool({
 const q = (t: string, p?: unknown[]) => pool.query(t, p);
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: FRONTEND_URL } });
+const configuredOrigins = new Set(
+  FRONTEND_URL.split(",").map((origin) => origin.trim()),
+);
+const isLocalFrontendOrigin = (origin: string) => {
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== "http:" || url.port !== "3000") return false;
+    const host = url.hostname;
+    if (host === "localhost" || host === "127.0.0.1" || host === "[::1]")
+      return true;
+    const octets = host.split(".").map(Number);
+    if (octets.length !== 4 || octets.some((part) => part < 0 || part > 255))
+      return false;
+    return (
+      octets[0] === 10 ||
+      (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+      (octets[0] === 192 && octets[1] === 168)
+    );
+  } catch {
+    return false;
+  }
+};
+const corsOptions: CorsOptions = {
+  origin(origin, callback) {
+    callback(
+      null,
+      !origin || configuredOrigins.has(origin) || isLocalFrontendOrigin(origin),
+    );
+  },
+};
+const io = new Server(server, { cors: corsOptions });
 
 app.use(helmet());
-app.use(cors({ origin: FRONTEND_URL }));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "100kb" }));
 
-const STATUSES = ["todo", "in-progress", "done"];
+const STATUSES = ["todo", "in_progress", "done"];
 const sign = (id: string, name: string) =>
   jwt.sign({ sub: id, name } as JwtUser, JWT_SECRET, { expiresIn: "8h" });
 const auth = (req: Request, res: Response, next: NextFunction) => {
@@ -59,6 +89,7 @@ const h =
     fn(req, res).catch(next);
 
 const me = (res: Response) => res.locals.user as JwtUser;
+const routeId = (req: Request) => String(req.params.id ?? "");
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 
 const isMember = async (pid: string, uid: string) =>
@@ -93,7 +124,7 @@ async function notify(
 
 // loads a task the caller may access
 async function taskFor(req: Request, res: Response) {
-  const t = (await q("SELECT * FROM tasks WHERE id=$1", [req.params.id]))
+  const t = (await q("SELECT * FROM tasks WHERE id=$1", [routeId(req)]))
     .rows[0];
   if (!t || !(await isMember(t.project_id, me(res).sub))) {
     res.status(404).json({ error: "Task not found" });
@@ -128,8 +159,12 @@ app.post(
           ],
         )
       ).rows[0];
+      return res.status(201).json({
+        token: sign(u.id, u.display_name),
+        user: { id: u.id, name: u.display_name },
+      });
     } catch {
-      res.status(400).json({ error: "Email already in use" });
+      return res.status(400).json({ error: "Email already in use" });
     }
   }),
 );
@@ -200,23 +235,23 @@ app.get(
   "/api/projects/:id",
   auth,
   h(async (req, res) => {
-    if (!(await isMember(req.params.id, me(res).sub)))
+    if (!(await isMember(routeId(req), me(res).sub)))
       return res.status(404).json({ error: "Project not found" });
 
     const project = (
-      await q("SELECT id,name FROM projects WHERE id=$1", [req.params.id])
+      await q("SELECT id,name FROM projects WHERE id=$1", [routeId(req)])
     ).rows[0];
 
     const members = (
       await q(
         "SELECT u.id,u.display_name,u.email FROM project_members m JOIN users u ON u.id=m.user_id WHERE m.project_id=$1",
-        [req.params.id],
+        [routeId(req)],
       )
     ).rows;
 
     const tasks = (
       await q(TASK_SQL + " WHERE t.project_id=$1 ORDER BY t.created_at", [
-        req.params.id,
+        routeId(req),
       ])
     ).rows;
 
@@ -228,7 +263,7 @@ app.post(
   "/api/projects/:id/members",
   auth,
   h(async (req, res) => {
-    if (!(await isMember(req.params.id, me(res).sub)))
+    if (!(await isMember(routeId(req), me(res).sub)))
       return res.status(404).json({ error: "Project not found" });
 
     const u = (
@@ -242,22 +277,22 @@ app.post(
 
     await q(
       "INSERT INTO project_members(project_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING",
-      [req.params.id, u.id],
+      [routeId(req), u.id],
     );
 
     const p = (
-      await q("SELECT name FROM projects WHERE id=$1", [req.params.id])
+      await q("SELECT name FROM projects WHERE id=$1", [routeId(req)])
     ).rows[0];
 
     await notify(
       u.id,
       me(res).sub,
       `${me(res).name} added you to project "${p.name}"`,
-      req.params.id,
+      routeId(req),
       "",
     );
 
-    io.to("project:" + req.params.id).emit("member: added", u);
+    io.to("project:" + routeId(req)).emit("member:added", u);
     res.status(201).json(u);
   }),
 );
@@ -267,7 +302,7 @@ app.post(
   "/api/projects/:id/tasks",
   auth,
   h(async (req, res) => {
-    const pid = req.params.id,
+    const pid = routeId(req),
       { title, status = "todo", assignee_id = null } = req.body ?? {};
     if (!(await isMember(pid, me(res).sub)))
       return res.status(404).json({ error: "Project not found" });
