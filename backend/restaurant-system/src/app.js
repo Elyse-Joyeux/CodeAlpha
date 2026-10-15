@@ -5,7 +5,7 @@ const { notFound, errorHandler } = require('./middleware/errorHandler')
 
 
 const app = express()
-app.use(express.json())
+app.use(express.json({ limit: '32kb' }))
 app.use(express.static(path.join(__dirname, '..', 'public')))    // frontend
 app.use('/api', routes)
 app.use('/api', notFound)

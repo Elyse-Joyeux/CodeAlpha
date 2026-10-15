@@ -3,7 +3,7 @@ const { stayMs } = require("../config");
 const httpError = require("../utils/httpError");
 const { dayRange, today, parseSlot } = require("../utils/data");
 
-// rree for a slot = fits the party, no booking within 90 minutes of the slot, and not in use
+// A table is free for a slot when it fits the party, has no nearby booking, and is not in use.
 // right now when the slot falls inside the current sitting.
 async function freeTables(slot, party) {
   const [tables, busy] = await Promise.all([
@@ -45,13 +45,21 @@ exports.listWithNextBooking = async () => {
 exports.availability = (startsAt, party) => {
   const slot = parseSlot(startsAt);
   if (!slot) throw httpError(400, "Choose a date and time");
-  return freeTables(slot, Number(party) || 1);
+  if (slot < new Date()) throw httpError(400, "Choose a future date and time");
+  party = Number(party);
+  if (!Number.isInteger(party) || party < 1)
+    throw httpError(400, "Party size must be at least 1");
+  return freeTables(slot, party);
 };
 
 exports.reserve = async ({ table_id, name, phone, starts_at, party }) => {
+  name = typeof name === "string" ? name.trim() : "";
+  phone = typeof phone === "string" ? phone.trim() : "";
   party = Number(party);
   const slot = parseSlot(starts_at);
   if (!name || !phone) throw httpError(400, "Name and phone are required");
+  if (name.length > 100 || phone.length > 40)
+    throw httpError(400, "Name or phone is too long");
   if (!slot || slot < new Date())
     throw httpError(400, "Choose a future date and time");
   if (!Number.isInteger(party) || party < 1)
