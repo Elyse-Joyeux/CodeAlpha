@@ -6,17 +6,22 @@ export const getToken = () =>
 export const getName = () =>
   typeof window === "undefined" ? null : localStorage.getItem("name");
 
-export async function api<T = any>(
+export async function api<T = unknown>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    ...(init.headers as Record<string, string>),
+  };
+  if (!(init.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (token) headers.Authorization = "Bearer " + token;
+
   const r = await fetch(API + path, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + getToken(),
-      ...init.headers,
-    },
+    headers,
   });
 
   const d = await r.json().catch(() => ({}));

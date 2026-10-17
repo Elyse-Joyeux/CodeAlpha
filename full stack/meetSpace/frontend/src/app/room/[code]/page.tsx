@@ -54,7 +54,7 @@ export default function Room() {
   const [peers, setPeers] = useState<Record<string, Peer>>({});
   const [mine, setMine] = useState<MediaStream | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [files, setFiles] = useState<FileMedia[]>([]);
+  const [files, setFiles] = useState<FileMeta[]>([]);
   const [text, setText] = useState("");
   const [tab, setTab] = useState<"v" | "b">("v");
   const [err, setErr] = useState("");
@@ -65,6 +65,7 @@ export default function Room() {
   const last = useRef<[number, number] | null>(null);
   const color = useRef<HTMLInputElement>(null);
   const eraser = useRef<HTMLInputElement>(null);
+  const pendingBoard = useRef<Seg[] | null>(null);
 
   const draw = (s: Seg) => {
     const c = cv.current;
@@ -88,15 +89,33 @@ export default function Room() {
     if (emit) sock.current?.emit("clear");
   };
 
+  const restoreBoard = (segments: Seg[]) => {
+    const c = cv.current;
+    const ctx = c?.getContext("2d");
+    if (!c || !ctx) {
+      pendingBoard.current = segments;
+      return;
+    }
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, c.width, c.height);
+    segments.forEach(draw);
+    pendingBoard.current = null;
+  };
+
+  useEffect(() => {
+    if (tab !== "b" || !pendingBoard.current) return;
+    restoreBoard(pendingBoard.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
   useEffect(() => {
     const token = getToken();
     if (!token) {
-      router.replace("/");
+      router.replace("/login");
       return;
     }
 
     let dead = false;
-    wipe(false);
     (async () => {
       try {
         const { iceServers } = await api<{ iceServers: RTCIceServer[] }>(
@@ -118,10 +137,11 @@ export default function Room() {
         local.current = ms;
         setMine(ms);
         const s = io(API, { auth: { token } });
-        Socket.current = s;
+        sock.current = s;
         s.on("connect_error", () => {
-          localStorage.clear();
-          router.replace("/");
+          localStorage.removeItem("t");
+          localStorage.removeItem("name");
+          router.replace("/login");
         });
 
         const make = (id: string, name: string) => {
@@ -192,7 +212,7 @@ export default function Room() {
 
           setMsgs(res.messages);
           setFiles(res.files);
-          res.board.forEach(draw);
+          restoreBoard(res.board ?? []);
         });
       } catch (e) {
         setErr((e as Error).message);
@@ -219,23 +239,28 @@ export default function Room() {
   async function share() {
     try {
       const d = await navigator.mediaDevices.getDisplayMedia({ video: true });
-      const t = d.getvideoTracks()[0];
+      const t = d.getVideoTracks()[0];
       const cam = local.current?.getVideoTracks()[0];
-      const swap = (x: MediaStreamTrack) => {
-        Object.values(pcs.current).forEach((pc) =>
-          pc
-            .getSenders()
-            .find((z) => z.track?.kind === "video")
-            ?.replaceTrack(x),
-        );
+      const swap = (x: MediaStreamTrack | null) => {
+        Object.values(pcs.current).forEach((pc) => {
+          const transceiver = pc.getTransceivers().find(
+            (item) => item.receiver.track.kind === "video",
+          );
+          if (transceiver) {
+            void transceiver.sender.replaceTrack(x);
+            transceiver.direction = x ? "sendrecv" : "recvonly";
+          } else if (x) {
+            pc.addTrack(x, new MediaStream([x]));
+          }
+        });
         setMine(
-          new MediaStream([x, ...(local.current?.getAudioTracks() ?? [])]),
+          new MediaStream([...(x ? [x] : []), ...(local.current?.getAudioTracks() ?? [])]),
         );
       };
 
       swap(t);
       t.onended = () => {
-        if (cam) swap(cam);
+        swap(cam ?? null);
       };
     } catch {
       /* user cancelled */
@@ -259,11 +284,17 @@ export default function Room() {
     const r = await fetch(`${API}/api/files/${f.id}`, {
       headers: { Authorization: "Bearer " + getToken() },
     });
+    if (!r.ok) {
+      setErr("Could not download this file. Rejoin the room and try again.");
+      return;
+    }
 
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(await r.blob());
+    const href = URL.createObjectURL(await r.blob());
+    a.href = href;
     a.download = f.filename;
     a.click();
+    URL.revokeObjectURL(href);
   }
 
   const send = () => {
@@ -297,7 +328,7 @@ export default function Room() {
     return (
       <div className="center">
         <p className="err">{err}</p>
-        <button onClick={() => router.push("/")}>Back</button>
+        <button onClick={() => router.push("/dashboard")}>Back</button>
       </div>
     );
 
@@ -314,7 +345,7 @@ export default function Room() {
         <button onClick={() => toggle("audio")}>Mic</button>
         <button onClick={() => toggle("video")}>Camera</button>
         <button onClick={share}>Share screen</button>
-        <button className="r" onClick={() => router.push("/")}>
+        <button className="r" onClick={() => router.push("/dashboard")}>
           Leave
         </button>
       </header>
@@ -329,7 +360,7 @@ export default function Room() {
           ))}
         </div>
         <div style={{ display: tab === "b" ? "block" : "none" }}>
-          <div className="row" style={{ marginBottom: 8 }}>
+          <div className="wb-toolbar">
             <input
               ref={color}
               type="color"

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f6f2" />
+    <meta
+      name="description"
+      content="A little corner of the internet for the good stuff."
+    />
+    <title>Kindred — good things, together</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="toast" class="toast" role="status"></div>
+    <div id="authScreen" class="auth-screen">
+      <div class="auth-art">
+        <div class="auth-art-inner">
+          <span class="brand-mark large">k<span>•</span></span>
+          <p class="eyebrow">A little corner of the internet</p>
+          <h1>Good things<br />grow <em>together.</em></h1>
+          <p class="auth-sub">
+            A slower, softer space to share the everyday moments that make life
+            feel full.
+          </p>
+          <div class="art-note">
+            <span class="note-sun">✳</span
+            ><span>Made for the in-between moments.</span>
+          </div>
+        </div>
+        <div class="art-shape shape-one"></div>
+        <div class="art-shape shape-two"></div>
+      </div>
+      <div class="auth-panel">
+        <div class="auth-mobile-brand">
+          <span class="brand-mark">k<span>•</span></span> kindred
+        </div>
+        <div class="auth-box">
+          <p class="eyebrow" id="authEyebrow">YOUR PEOPLE ARE HERE</p>
+          <h2 id="authTitle">Come on in.</h2>
+          <p class="auth-copy" id="authCopy">
+            A good day starts with good company.
+          </p>
+          <form id="authForm">
+            <div id="nameField" class="field hidden">
+              <label for="name">Your name</label
+              ><input
+                id="name"
+                autocomplete="name"
+                placeholder="What should we call you?"
+              />
+            </div>
+            <div id="usernameField" class="field hidden">
+              <label for="username">Username</label>
+              <div class="input-prefix">
+                <span>@</span
+                ><input
+                  id="username"
+                  autocomplete="username"
+                  placeholder="yourname"
+                />
+              </div>
+            </div>
+            <div class="field">
+              <label for="email">Email address</label
+              ><input
+                id="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="password">Password</label
+              ><input
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="At least 8 characters"
+                required
+              />
+            </div>
+            <p id="authError" class="form-error"></p>
+            <button
+              id="authSubmit"
+              class="btn btn-primary btn-full"
+              type="submit"
+            >
+              Sign in
+            </button>
+          </form>
+          <p class="auth-switch">
+            <span id="switchText">New around here?</span>
+            <button id="authSwitch" class="text-button">
+              Make yourself at home
+            </button>
+          </p>
+          <div class="auth-foot">
+            A small social space, made with care <span>✳</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="app" class="app hidden">
+      <aside class="sidebar">
+        <a class="brand" href="#"
+          ><span class="brand-mark">k<span>•</span></span
+          ><span>kindred</span></a
+        >
+        <div class="side-label">YOUR SPACE</div>
+        <nav class="main-nav">
+          <button class="nav-link active" data-view="home">
+            <span class="nav-icon">⌂</span> Home</button
+          ><button class="nav-link" data-view="profile">
+            <span class="nav-icon">◉</span> My profile
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="side-note">
+            <span class="side-note-icon">✳</span>
+            <p>Take a breath.<br /><b>You’re right where you need to be.</b></p>
+          </div>
+          <button id="signOut" class="signout">Sign out</button>
+        </div>
+      </aside>
+      <main class="main-column">
+        <header class="topbar">
+          <div>
+            <span class="today-dot"></span
+            ><span id="dateLabel">A good day to say hello</span>
+          </div>
+          <button
+            id="mobileProfile"
+            class="avatar avatar-small"
+            aria-label="My profile"
+          ></button>
+        </header>
+        <div class="content-wrap">
+          <section id="homeView">
+            <div class="greeting">
+              <p class="eyebrow">YOUR LITTLE CORNER</p>
+              <h1>
+                Good morning, <span id="greetingName">friend</span
+                ><span class="wave">✳</span>
+              </h1>
+              <p>Here’s what’s happening in your circle.</p>
+            </div>
+            <div class="compose-card">
+              <div class="compose-top">
+                <div id="composeAvatar" class="avatar"></div>
+                <textarea
+                  id="postText"
+                  maxlength="1000"
+                  rows="2"
+                  placeholder="What’s bringing you a little joy today?"
+                ></textarea>
+              </div>
+              <div class="compose-bottom">
+                <span class="compose-hint"
+                  ><span>✳</span> The little things count.</span
+                >
+                <div>
+                  <input
+                    id="postImage"
+                    class="image-url"
+                    placeholder="Image URL (optional)"
+                    aria-label="Image URL"
+                  /><button id="sharePost" class="btn btn-primary">
+                    Share a moment
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="feed-heading">
+              <div>
+                <span class="eyebrow">FRESH FROM YOUR CIRCLE</span>
+                <h2>The good stuff</h2>
+              </div>
+              <span class="feed-flower">✳</span>
+            </div>
+            <div id="feed" class="feed"></div>
+            <div id="emptyFeed" class="empty-state hidden">
+              <div>✳</div>
+              <h3>A fresh little start</h3>
+              <p>
+                Your feed is quiet for now. Share a moment or find someone new
+                to follow.
+              </p>
+            </div>
+          </section>
+          <section id="profileView" class="hidden">
+            <div class="profile-cover"></div>
+            <div class="profile-head">
+              <div id="profileAvatar" class="avatar profile-avatar"></div>
+              <button id="editProfile" class="btn btn-soft">
+                Edit profile
+              </button>
+            </div>
+            <div class="profile-info">
+              <h1 id="profileName">Your name</h1>
+              <p id="profileHandle" class="handle">@username</p>
+              <p id="profileBio" class="profile-bio"></p>
+              <p id="profileLocation" class="profile-location"></p>
+              <div class="profile-stats">
+                <span><b id="profilePosts">0</b> posts</span
+                ><span><b id="profileFollowers">0</b> followers</span
+                ><span><b id="profileFollowing">0</b> following</span>
+              </div>
+            </div>
+            <div class="feed-heading profile-feed-heading">
+              <div>
+                <span class="eyebrow">YOUR LITTLE CORNER</span>
+                <h2>Your moments</h2>
+              </div>
+            </div>
+            <div id="profileFeed" class="feed"></div>
+          </section>
+        </div>
+      </main>
+      <aside class="rightbar">
+        <div class="right-welcome">
+          <div class="welcome-art">
+            <span>✳</span><span>☼</span><span>✳</span>
+          </div>
+          <p class="eyebrow">A GENTLE REMINDER</p>
+          <h3>Make room for<br /><em>the good.</em></h3>
+          <p>
+            There’s something lovely in every day. Sometimes we just need a
+            little help noticing.
+          </p>
+        </div>
+        <div class="people-card">
+          <div class="people-heading">
+            <div>
+              <span class="eyebrow">KINDRED SPIRITS</span>
+              <h3>People to know</h3>
+            </div>
+            <span>✳</span>
+          </div>
+          <div id="suggestions"></div>
+          <p class="people-foot">
+            Good company makes the little things bigger.
+          </p>
+        </div>
+        <div class="right-footer">
+          <span>Made for the in-between moments.</span><b>kindred <i>✳</i></b>
+        </div>
+      </aside>
+    </div>
+    <div id="modal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card">
+        <button id="closeModal" class="modal-close" aria-label="Close">
+          ×
+        </button>
+        <p class="eyebrow">A LITTLE UPDATE</p>
+        <h2>Make yourself at home.</h2>
+        <form id="profileForm">
+          <div class="field">
+            <label for="editName">Your name</label
+            ><input id="editName" maxlength="48" required />
+          </div>
+          <div class="field">
+            <label for="editBio">A little about you</label
+            ><textarea id="editBio" maxlength="180" rows="3"></textarea>
+          </div>
+          <div class="field">
+            <label for="editLocation">Your corner of the world</label
+            ><input
+              id="editLocation"
+              maxlength="80"
+              placeholder="Cape Town, South Africa"
+            />
+          </div>
+          <div class="field">
+            <label for="editAvatar">Profile photo URL</label
+            ><input id="editAvatar" type="url" placeholder="https://…" />
+          </div>
+          <p id="profileError" class="form-error"></p>
+          <button class="btn btn-primary btn-full" type="submit">
+            Save my details
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="mobile-nav">
+      <button class="nav-link active" data-view="home">
+        <span>⌂</span>Home</button
+      ><button class="nav-link" data-view="profile"><span>◉</span>Me</button
+      ><button id="mobileSignOut" class="nav-link">
+        <span>•</span>Sign out
+      </button>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>

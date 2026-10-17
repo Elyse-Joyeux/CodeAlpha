@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express, { Request, Response, Nextfunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import http from "http";
 import path from "path";
 import fs from "fs";
@@ -12,10 +12,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Pool } from "pg";
 import { Server, Socket } from "socket.io";
-import { FILE } from "dns";
-import { stringify } from "querystring";
-import { userInfo } from "os";
-
 interface JwtUser {
   sub: string;
   name: string;
@@ -57,10 +53,24 @@ const io = new Server(server, { cors: { origin: FRONTEND_URL } });
 app.use(helmet());
 app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json({ limit: "100kb" }));
+app.get("/api/health", async (_req, res) => {
+  try {
+    await q("select 1");
+    res.json({ status: "ok", database: "connected" });
+  } catch {
+    res.status(503).json({ status: "error", database: "unavailable" });
+  }
+});
+app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && "body" in err) {
+    return res.status(400).json({ error: "Invalid JSON" });
+  }
+  next(err);
+});
 
 const sign = (id: string, name: string) =>
   jwt.sign({ sub: id, name } as JwtUser, JWT_SECRET, { expiresIn: "8h" });
-const auth = (req: Request, res: Response, next: Nextfunction) => {
+const auth = (req: Request, res: Response, next: NextFunction) => {
   try {
     res.locals.user = jwt.verify(
       (req.headers.authorization || "").replace("Bearer ", ""),
@@ -75,11 +85,12 @@ const auth = (req: Request, res: Response, next: Nextfunction) => {
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 
 app.post("/api/register", limiter, async (req: Request, res: Response) => {
-  const { email, password, name } = req.body;
+  const { email, password, name } = req.body ?? {};
   if (
-    !/^\S+@\S+\.\S+$/.test(email ?? "") ||
-    (password ?? "").length < 8 ||
-    !(name ?? "").trim()
+    typeof email !== "string" ||
+    !/^\S+@\S+\.\S+$/.test(email) ||
+    typeof password !== "string" || password.length < 8 ||
+    typeof name !== "string" || !name.trim()
   )
     return res
       .status(400)
@@ -104,7 +115,7 @@ app.post("/api/register", limiter, async (req: Request, res: Response) => {
   }
 });
 
-app.post("api/login", limiter, async (req: Request, res: Response) => {
+app.post("/api/login", limiter, async (req: Request, res: Response) => {
   const { email, password } = req.body ?? {};
   const u = (
     await q("SELECT * FROM users WHERE email=$1", [
@@ -160,6 +171,11 @@ app.post(
     ).rows[0];
     if (!room || !req.file)
       return res.status(400).json({ error: "Bad request" });
+    const member = await q(
+      "select 1 from room_participants where room_id=$1 and user_id=$2 and left_at is null",
+      [room.id, res.locals.user.sub],
+    );
+    if (!member.rowCount) return res.status(403).json({ error: "Join the room before sharing files" });
 
     const iv = crypto.randomBytes(12);
     const c = crypto.createCipheriv("aes-256-gcm", KEY, iv);
@@ -225,6 +241,10 @@ io.on("connection", (s: Socket) => {
   const user: JwtUser = s.data.user;
   s.on("join", async (code: string, ack: (r: unknown) => void) => {
     try {
+      if (typeof ack !== "function") return;
+      if (s.data.room && s.data.room !== code) s.leave(s.data.room);
+      if (typeof code !== "string" || !/^[a-f0-9]{8}$/i.test(code))
+        return ack({ error: "Invalid room code" });
       const r = (
         await q("select id from rooms where code=$1 and ended_at is null", [
           code,
@@ -234,10 +254,15 @@ io.on("connection", (s: Socket) => {
       s.data.room = code;
       s.data.roomId = r.id;
       s.join(code);
-      await q("INSERT INTO room_participants(room_id,user_id) VALUES($1,$2)", [
-        r.id,
-        user.sub,
-      ]);
+      await q(
+        `INSERT INTO room_participants(room_id, user_id)
+         SELECT $1, $2
+         WHERE NOT EXISTS (
+           SELECT 1 FROM room_participants
+           WHERE room_id = $1 AND user_id = $2 AND left_at IS NULL
+         )`,
+        [r.id, user.sub],
+      );
 
       if (!boards.has(code)) {
         const snap = (
@@ -275,9 +300,12 @@ io.on("connection", (s: Socket) => {
     }
   });
 
-  s.on("signal", ({ to, data }: { to: string; data: unknown }) =>
-    io.to(to).emit("signal", { from: s.id, name: user.name, data }),
-  );
+  s.on("signal", ({ to, data }: { to: string; data: unknown }) => {
+    if (!s.data.room || typeof to !== "string") return;
+    const target = io.sockets.sockets.get(to);
+    if (target && target.data.room === s.data.room)
+      target.emit("signal", { from: s.id, name: user.name, data });
+  });
 
   s.on('chat', async (body: string) => {
     if(!s.data.room)
@@ -309,18 +337,23 @@ io.on("connection", (s: Socket) => {
       return;
 
     s.to(code).emit('peer-left', s.id)
-    await q('UPDATE room_participants SET left_at=now() WHERE room_id=$1 AND user_id=$2 AND left_at IS NULL', [s.data.roomId, user.sub]).catch(() => {})
+    const anotherConnection = (await io.in(code).fetchSockets()).some(
+      (peer) => peer.data.user?.sub === user.sub,
+    );
+    if (!anotherConnection)
+      await q('UPDATE room_participants SET left_at=now() WHERE room_id=$1 AND user_id=$2 AND left_at IS NULL', [s.data.roomId, user.sub]).catch(() => {})
     if (!io.sockets.adapter.rooms.get(code)) {
       const b = boards.get(code)
       boards.delete(code)
-      if(b?.length) 
-        await q('INSERT INTO whiteboard_snapshots(room_id,data) VALUES($1,$2)', [s.data.roomId, JSON.stringify(b)]).catch(() => {})
+      await q('INSERT INTO whiteboard_snapshots(room_id,data) VALUES($1,$2)', [s.data.roomId, JSON.stringify(b ?? [])]).catch(() => {})
     }
   })
 });
 
 (async () => {
-  await q.(fs.readFileSync(path.join(__dirname, '..', 'schema.sql'), 'utf8'))
+  await pool.query(
+    fs.readFileSync(path.join(__dirname, "..", "schema.sql"), "utf8"),
+  );
   server.listen(Number(PORT), () => console.log(`API running on http://localhost:${PORT}`))
 })().catch(e => {
   console.error("Startup failed:", e.message)

@@ -49,3 +49,6 @@ CREATE TABLE IF NOT EXISTS whiteboard_snapshots (
 CREATE INDEX IF NOT EXISTS idx_messages_room ON messages(room_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_files_room ON files(room_id);
 CREATE INDEX IF NOT EXISTS idx_wb_room ON whiteboard_snapshots(room_id, id DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_room_participants_active
+  ON room_participants (room_id, user_id) WHERE left_at IS NULL;
