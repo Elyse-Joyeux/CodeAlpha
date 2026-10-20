@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2563eb" />
+  <title>Create an Account — ShopKart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="container narrow">
+    <p class="eyebrow center">NEW CUSTOMER</p>
+    <h1 class="section-title">Create an Account</h1>
+    <p class="page-intro center">Sign up to manage your orders, save your favorites, and checkout faster.</p>
+
+    <form id="registerForm" class="card">
+      <div class="form-group">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" required autocomplete="name" placeholder="John Doe" />
+      </div>
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="6" autocomplete="new-password" placeholder="At least 6 characters" />
+        <small class="muted">Must be at least 6 characters long.</small>
+      </div>
+      <p id="registerError" class="error-text"></p>
+      <button type="submit" class="btn btn-primary btn-block" style="padding:12px">Create Account &rarr;</button>
+    </form>
+
+    <p class="muted center" style="margin-top:20px">
+      Already have an account? <a href="login.html" style="color:var(--primary);font-weight:600">Sign in</a>
+    </p>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/register.js"></script>
+</body>
+</html>

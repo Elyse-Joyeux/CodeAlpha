@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2563eb" />
+  <title>Sign In — ShopKart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="container narrow">
+    <p class="eyebrow center">ACCOUNT ACCESS</p>
+    <h1 class="section-title">Sign In</h1>
+    <p class="page-intro center">Welcome back! Please enter your credentials to access your account.</p>
+
+    <form id="loginForm" class="card">
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <p id="loginError" class="error-text"></p>
+      <button type="submit" class="btn btn-primary btn-block" style="padding:12px">Sign In &rarr;</button>
+    </form>
+
+    <p class="muted center" style="margin-top:20px">
+      Don't have an account yet? <a href="register.html" style="color:var(--primary);font-weight:600">Create an account</a>
+    </p>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

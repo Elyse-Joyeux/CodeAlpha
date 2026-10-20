@@ -3,10 +3,10 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const { safeUser } = require('../utils/serializers')
 
-const token = (user) => 
+const tokenFor = (user) =>
     jwt.sign(
         { id: user._id}, 
-        process.env.JWT_SECRET || 'development-only-server',
+        process.env.JWT_SECRET || 'development-only-secret',
         { expiresIn: '7d' }
     )
 
@@ -30,7 +30,7 @@ async function register(req, res) {
         res.status(201).json({ token: tokenFor(user), user: safeUser(user) })
         
     } catch (error){
-        res.status(error.code === 1100 ? 409 : 400)
+        res.status(error.code === 11000 ? 409 : 400)
             .json({
                 error: error.code === 11000 ? "Email or username already in use." : error.message || "Could not create your account."
             })

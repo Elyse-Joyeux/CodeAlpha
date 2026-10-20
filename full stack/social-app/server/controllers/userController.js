@@ -3,7 +3,10 @@ const Post = require('../models/Post')
 const { safeUser, shapePost } = require('../utils/serializers')
 
 function getMe(req, res) {
-    res.json(safeUser(req.User))
+    if (!req.user)
+        return res.status(401).json({ error: "Please sign in to continue." })
+
+    res.json(safeUser(req.user))
 }
 
 async function updateMe(req, res) {
@@ -42,7 +45,7 @@ async function getProfile(req, res) {
 
     res.json({
         user: safeUser(user),
-        posts: posts.map((post) => shapePost(post, req.use._id))
+        posts: posts.map((post) => shapePost(post, req.user._id))
     })
 }
 

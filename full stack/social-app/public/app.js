@@ -20,10 +20,13 @@ const api = async (url, options = {}) => {
     },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok)
-    throw new Error(
+  if (!res.ok) {
+    const error = new Error(
       data.error || "Something went a little sideways. Please try again.",
     );
+    error.status = res.status;
+    throw error;
+  }
   return data;
 };
 function toast(message) {
@@ -43,10 +46,13 @@ function esc(value = "") {
   );
 }
 function avatar(user, cls = "avatar") {
-  const style = user?.avatar
+  const hasAvatar = Boolean(user?.avatar?.trim());
+  const style = hasAvatar
     ? `style="background-image:url('${esc(user.avatar)}')"`
     : "";
-  const initial = esc((user?.name || "K").trim().charAt(0).toUpperCase());
+  const initial = hasAvatar
+    ? ""
+    : esc((user?.name || "K").trim().charAt(0).toUpperCase());
   return `<div class="${cls}" ${style}>${initial}</div>`;
 }
 function timeAgo(date) {
@@ -122,9 +128,13 @@ async function boot() {
   try {
     state.user = await api("/me");
     showApp();
-  } catch {
-    localStorage.removeItem("kindred_token");
-    state.token = null;
+  } catch (err) {
+    if (err.status === 401) {
+      localStorage.removeItem("kindred_token");
+      state.token = null;
+    } else {
+      toast(err.message);
+    }
     showAuth();
   }
 }
